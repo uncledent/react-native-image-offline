@@ -39,7 +39,7 @@ const downloadImageEpic = (action$, store) =>
         .fetch(method, source.uri, source.headers)
         .then(() => {
           console.log('RNFetchBlob', 'success', imageFilePath, source.uri);
-          store.dispatch(downloadImageOfflineSuccess(source.uri, imageFilePath));
+          setTimeout(() =>store.dispatch(downloadImageOfflineSuccess(source.uri, imageFilePath)), 100);
         }).catch(() => {
           console.log('RNFetchBlob', 'failure', imageFilePath, source.uri);
           RNFetchBlob.fs.unlink(imageFilePath);
