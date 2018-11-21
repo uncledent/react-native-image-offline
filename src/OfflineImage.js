@@ -11,11 +11,10 @@ const FILE_PREFIX = Platform.OS === 'ios' ? '' : 'file://';
  * This component can get the cached image's device file path as source path.
  */
 class OfflineImage extends React.Component {
-
   constructor(props) {
     super(props);
     this.state = {
-      path: undefined,
+      path: undefined
     };
 
     this.handler = this.handler.bind(this);
@@ -43,14 +42,16 @@ class OfflineImage extends React.Component {
     const reloadImage = nextProps.reloadImage;
 
     const source = this.props.source;
-    if (nextSource && source && nextSource.uri !== source.uri){
+    if (nextSource && source && nextSource.uri !== source.uri) {
       const offlinePath = offlineImageStore.getImageOfflinePath(nextSource.uri);
-      this.setState({ path: offlinePath });
-      offlineImageStore.subscribe(source, this.handler, reloadImage);
+      setTimeout(() => {
+        this.setState({ path: offlinePath });
+        offlineImageStore.subscribe(source, this.handler, reloadImage);
+      }, 1000);
     }
   }
 
-  componentWillUnmount(){
+  componentWillUnmount() {
     const { source } = this.props;
     if (source.uri) {
       // Subscribe so that we can re-render once image downloaded!
@@ -88,9 +89,10 @@ class OfflineImage extends React.Component {
     if (source.uri) {
       if (this.state.path) {
         sourceImage = {
-          uri: FILE_PREFIX + this.state.path,
+          uri: FILE_PREFIX + this.state.path
         };
-      } else if (fallbackSource) { // Show fallback image until we download actual image if not able to download show fallback image only!
+      } else if (fallbackSource) {
+        // Show fallback image until we download actual image if not able to download show fallback image only!
         sourceImage = fallbackSource;
       }
     } else {
@@ -104,24 +106,23 @@ class OfflineImage extends React.Component {
 
     if (component) {
       const Component = component;
-      return (
-        <Component { ...componentProps }>{ this.props.children }</Component>
-      );
+      return <Component {...componentProps}>{this.props.children}</Component>;
     }
 
     // Default component would be 'ImageBackground' to render
     return (
-      <ImageBackground { ...componentProps }>{ this.props.children }</ImageBackground>
+      <ImageBackground {...componentProps}>
+        {this.props.children}
+      </ImageBackground>
     );
   }
-
 }
 
 OfflineImage.propTypes = {
   //fallbackSource: PropTypes.int,
   component: PropTypes.func,
   reloadImage: PropTypes.bool,
-  onLoadEnd: PropTypes.func,
+  onLoadEnd: PropTypes.func
 };
 
 export default OfflineImage;
