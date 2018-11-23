@@ -44,10 +44,10 @@ class OfflineImage extends React.Component {
     const source = this.props.source;
     if (nextSource && source && nextSource.uri !== source.uri) {
       const offlinePath = offlineImageStore.getImageOfflinePath(nextSource.uri);
-      setTimeout(() => {
+      // setTimeout(() => {
         this.setState({ path: offlinePath });
         offlineImageStore.subscribe(source, this.handler, reloadImage);
-      }, 1000);
+      // }, 1000);
     }
   }
 
