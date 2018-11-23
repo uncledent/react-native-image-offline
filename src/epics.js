@@ -10,47 +10,56 @@ import { _catch } from 'rxjs/add/operator/catch';
 import RNFetchBlob from 'rn-fetch-blob';
 import OFFLINE_IMAGES from './constants';
 
-import { downloadImageOfflineFailure, downloadImageOfflineNetworkError, downloadImageOfflineSuccess } from './actions';
+import {
+  downloadImageOfflineFailure,
+  downloadImageOfflineNetworkError,
+  downloadImageOfflineSuccess
+} from './actions';
 
 import { getImageFilePath } from './utils';
 
 const defaultTimeout = 5000;
 
 const downloadImageEpic = (action$, store) =>
-  action$.ofType(OFFLINE_IMAGES.DOWNLOAD_IMAGE_OFFLINE)
-    .flatMap(action => {
-      console.log('downloadImage', 'Entry');
-      console.log('downloadImage', action.payload);
-      // TODO: Replace NetInfo
-//      if (!store.getState().networkReducer.isConnected) {
-//        console.log('downloadImage', 'Network not connected');
-//        return Observable.of(downloadImageOfflineNetworkError());
-//      }
+  action$.ofType(OFFLINE_IMAGES.DOWNLOAD_IMAGE_OFFLINE).flatMap(action => {
+    console.log('downloadImage', 'Entry');
+    console.log('downloadImage', action.payload);
+    // TODO: Replace NetInfo
+    //      if (!store.getState().networkReducer.isConnected) {
+    //        console.log('downloadImage', 'Network not connected');
+    //        return Observable.of(downloadImageOfflineNetworkError());
+    //      }
 
-      const source = action.payload;
+    const source = action.payload;
 
-      const method = source.method ? source.method : 'GET';
-      const imageFilePath = getImageFilePath(source.uri);
+    const method = source.method ? source.method : 'GET';
+    const imageFilePath = getImageFilePath(source.uri);
 
-      RNFetchBlob
-        .config({
-          path: imageFilePath
-        })
-        .fetch(method, source.uri, source.headers)
-        .then(() => {
-          console.log('RNFetchBlob', 'success', imageFilePath, source.uri);
-          store.dispatch(downloadImageOfflineSuccess(source.uri, imageFilePath));
-        }).catch(() => {
-          console.log('RNFetchBlob', 'failure', imageFilePath, source.uri);
-          RNFetchBlob.fs.unlink(imageFilePath);
-          store.dispatch(downloadImageOfflineFailure());
+    RNFetchBlob.config({
+      path: imageFilePath
+    })
+      .fetch(method, source.uri, source.headers)
+      .then(() => {
+        console.log('RNFetchBlob', 'success', imageFilePath, source.uri);
+        if (status >= 200 && status < 300) {
+          RNFetchBlob.fs.readFile(imageFilePath, 'base64').then(data => {
+            store.dispatch(
+              downloadImageOfflineSuccess(source.uri, imageFilePath)
+            );
+          });
+        } else {
+          throw 'Image fetch error';
+        }
+      })
+      .catch(() => {
+        console.log('RNFetchBlob', 'failure', imageFilePath, source.uri);
+        RNFetchBlob.fs.unlink(imageFilePath);
+        store.dispatch(downloadImageOfflineFailure());
       });
 
-      return Observable.of({
-        type: 'DOWNLOAD_IMAGE_OFFLINE_REQUEST_SENT'
-      });
-
+    return Observable.of({
+      type: 'DOWNLOAD_IMAGE_OFFLINE_REQUEST_SENT'
     });
+  });
 
 export default downloadImageEpic;
-
